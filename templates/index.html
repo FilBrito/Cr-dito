@@ -1,0 +1,944 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Crédito | Análise de Geração e Créditos Energéticos</title>
+
+    <!-- Bootstrap 5.3 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS personalizado -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+
+<body>
+
+<div class="container my-5">
+
+    <!-- CABEÇALHO -->
+
+    <header class="text-center mb-5">
+
+        <img
+            src="{{ url_for('static', filename='img/logo.png') }}"
+            alt="Logotipo Crédito"
+            class="logo mb-3"
+            onerror="this.style.display='none'"
+        >
+
+        <h1 class="fw-bold">Crédito</h1>
+
+        <h5 class="text-secondary">
+            Sistema de Análise de Geração e Créditos Energéticos
+        </h5>
+
+        <p class="text-muted mt-2">
+            Simulação da produção fotovoltaica, consumo energético,
+            satisfação e expiração dos créditos de geração.
+        </p>
+
+    </header>
+
+
+    <!-- MENSAGEM DE ERRO -->
+
+    {% if erro %}
+
+    <div class="alert alert-danger alert-dismissible fade show"
+         role="alert">
+
+        <strong>Erro no processamento:</strong>
+        {{ erro }}
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Fechar">
+        </button>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- FORMULÁRIO PRINCIPAL -->
+
+    <section class="card shadow-sm mb-5">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+                Parâmetros da Simulação
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST" action="{{ url_for('index') }}">
+
+                <!-- 1. PERÍODO DE ANÁLISE -->
+
+                <h6 class="section-title mb-3">
+                    1. Período de Análise
+                </h6>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+
+                        <label for="A0" class="form-label">
+                            Ano de instalação
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="A0"
+                            name="A0"
+                            value="{{ dados.A0 }}"
+                            min="1900"
+                            max="2100"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label for="At" class="form-label">
+                            Ano de referência
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="At"
+                            name="At"
+                            value="{{ dados.At }}"
+                            min="1900"
+                            max="2100"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- 2. CONSUMO ENERGÉTICO -->
+
+                <h6 class="section-title mb-3">
+                    2. Características do Consumo Energético
+                </h6>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+
+                        <label for="C0" class="form-label">
+                            Consumo inicial anual (kWh)
+                        </label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="form-control"
+                            id="C0"
+                            name="C0"
+                            value="{{ dados.C0 }}"
+                            min="0.000001"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label for="CA" class="form-label">
+                            Consumo atual anual (kWh)
+                        </label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="form-control"
+                            id="CA"
+                            name="CA"
+                            value="{{ dados.CA }}"
+                            min="0.000001"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- 3. SISTEMA FOTOVOLTAICO -->
+
+                <h6 class="section-title mb-3">
+                    3. Características do Sistema Fotovoltaico
+                </h6>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+
+                        <label for="PN" class="form-label">
+                            Potência nominal da placa (W)
+                        </label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="form-control"
+                            id="PN"
+                            name="PN"
+                            value="{{ dados.PN }}"
+                            min="0.000001"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label for="N" class="form-label">
+                            Número de placas
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="N"
+                            name="N"
+                            value="{{ dados.N }}"
+                            min="1"
+                            step="1"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label for="Payback" class="form-label">
+                            Payback (anos)
+                        </label>
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="form-control"
+                            id="Payback"
+                            name="Payback"
+                            value="{{ dados.Payback }}"
+                            min="0.000001"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label for="H" class="form-label">
+                            Região de instalação
+                        </label>
+
+                        <select
+                            class="form-select"
+                            id="H"
+                            name="H"
+                            required
+                        >
+
+                            <option value="1"
+                                {% if dados.H == 1 %}selected{% endif %}>
+                                Norte
+                            </option>
+
+                            <option value="2"
+                                {% if dados.H == 2 %}selected{% endif %}>
+                                Nordeste
+                            </option>
+
+                            <option value="3"
+                                {% if dados.H == 3 %}selected{% endif %}>
+                                Centro-Oeste
+                            </option>
+
+                            <option value="4"
+                                {% if dados.H == 4 %}selected{% endif %}>
+                                Sudeste
+                            </option>
+
+                            <option value="5"
+                                {% if dados.H == 5 %}selected{% endif %}>
+                                Sul
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label for="Classe" class="form-label">
+                            Classe de degradação do sistema
+                        </label>
+
+                        <select
+                            class="form-select"
+                            id="Classe"
+                            name="Classe"
+                            required
+                        >
+
+                            {% for classe in range(1, 7) %}
+
+                            <option
+                                value="{{ classe }}"
+                                {% if dados.Classe == classe %}selected{% endif %}
+                            >
+                                Classe {{ classe }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- 4. CRÉDITOS ENERGÉTICOS -->
+
+                <h6 class="section-title mb-3">
+                    4. Parâmetros dos Créditos de Geração
+                </h6>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+
+                        <label for="validade" class="form-label">
+                            Validade dos créditos (anos)
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="validade"
+                            name="validade"
+                            value="{{ dados.validade }}"
+                            min="1"
+                            step="1"
+                            required
+                        >
+
+                        <div class="form-text">
+                            Informe o período de validade considerado
+                            para a análise dos créditos.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BOTÕES -->
+
+                <div class="d-flex flex-wrap gap-2 justify-content-end">
+
+                    <a
+                        href="{{ url_for('index') }}"
+                        class="btn btn-outline-secondary"
+                    >
+                        Limpar parâmetros
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary px-4"
+                    >
+                        Calcular Simulação
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </section>
+
+    <!-- ================================================== -->
+    <!-- RESULTADOS DA SIMULAÇÃO -->
+    <!-- ================================================== -->
+
+    {% if tabela is not none and not tabela.empty %}
+
+    <section id="resultados">
+
+        <div class="mb-4">
+
+            <h3 class="fw-bold">
+                Resultados da Simulação
+            </h3>
+
+            <p class="text-muted">
+                Síntese dos resultados obtidos a partir
+                dos parâmetros informados.
+            </p>
+
+        </div>
+
+
+        <!-- INDICADORES PRINCIPAIS -->
+
+        <div class="row g-3 mb-5">
+
+            <div class="col-md-3 col-sm-6">
+
+                <div class="card indicator-card h-100">
+
+                    <div class="card-body">
+
+                        <p class="text-muted mb-1">
+                            Produção inicial
+                        </p>
+
+                        <h4 class="text-primary">
+                            {{ "%.2f"|format(indicadores.producao_inicial) }}
+                        </h4>
+
+                        <small class="text-muted">
+                            kWh/ano
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3 col-sm-6">
+
+                <div class="card indicator-card h-100">
+
+                    <div class="card-body">
+
+                        <p class="text-muted mb-1">
+                            Produção no ano de referência
+                        </p>
+
+                        <h4 class="text-primary">
+                            {{ "%.2f"|format(indicadores.producao_referencia) }}
+                        </h4>
+
+                        <small class="text-muted">
+                            kWh/ano
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3 col-sm-6">
+
+                <div class="card indicator-card h-100">
+
+                    <div class="card-body">
+
+                        <p class="text-muted mb-1">
+                            Consumo no ano de referência
+                        </p>
+
+                        <h4 class="text-warning">
+                            {{ "%.2f"|format(indicadores.consumo_referencia) }}
+                        </h4>
+
+                        <small class="text-muted">
+                            kWh/ano
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3 col-sm-6">
+
+                <div class="card indicator-card h-100">
+
+                    <div class="card-body">
+
+                        <p class="text-muted mb-1">
+                            Satisfação energética
+                        </p>
+
+                        <h4 class="{% if indicadores.satisfacao_referencia >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(indicadores.satisfacao_referencia) }}
+                        </h4>
+
+                        <small class="text-muted">
+                            kWh/ano
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INDICADORES COMPLEMENTARES -->
+
+        <div class="card shadow-sm mb-5">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Indicadores Complementares
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-striped align-middle mb-0">
+
+                        <tbody>
+
+                            <tr>
+                                <th>Utilidade acumulada</th>
+                                <td>
+                                    {{ "%.2f"|format(indicadores.utilidade_referencia) }}
+                                    kWh
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Créditos válidos</th>
+                                <td>
+                                    {{ "%.2f"|format(indicadores.creditos_validos) }}
+                                    kWh
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Crédito perdido</th>
+                                <td>
+                                    {{ "%.2f"|format(indicadores.credito_perdido) }}
+                                    kWh
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Crescimento anual do consumo</th>
+                                <td>
+                                    {{ "%.4f"|format((indicadores.crescimento_consumo - 1) * 100) }}%
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Degradação anual</th>
+                                <td>
+                                    {{ "%.4f"|format(indicadores.degradacao_anual * 100) }}%
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Vida útil estimada</th>
+                                <td>
+                                    {{ "%.2f"|format(indicadores.vida_util_anos) }}
+                                    anos
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Payback</th>
+                                <td>
+                                    {{ "%.0f"|format(indicadores.payback_meses) }}
+                                    meses
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- GRÁFICOS -->
+        <!-- ================================================== -->
+
+        <h4 class="fw-bold mb-3">
+            Análise Gráfica
+        </h4>
+
+
+        <!-- GRÁFICO 1 -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+                Produção versus Consumo
+            </div>
+
+            <div class="card-body">
+
+                <div id="graficoProducao"
+                     style="width:100%; height:420px;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GRÁFICO 2 -->
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+                Perspectiva Econômica
+            </div>
+
+            <div class="card-body">
+
+                <div id="graficoSatisfacao"
+                     style="width:100%; height:420px;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GRÁFICO 3 -->
+
+        <div class="card shadow-sm mb-5">
+
+            <div class="card-header">
+                Análise dos Créditos de Geração
+            </div>
+
+            <div class="card-body">
+
+                <div id="graficoCreditos"
+                     style="width:100%; height:420px;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- TABELA COMPLETA -->
+        <!-- ================================================== -->
+
+        <div class="card shadow-sm mb-5">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Tabela Completa de Resultados
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-striped table-bordered table-hover">
+
+                        <thead class="table-primary">
+
+                            <tr>
+
+                                {% for coluna in tabela.columns %}
+
+                                    <th>{{ coluna }}</th>
+
+                                {% endfor %}
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for _, linha in tabela.iterrows() %}
+
+                            <tr>
+
+                                {% for coluna in tabela.columns %}
+
+                                    <td>
+                                        {{ "%.2f"|format(linha[coluna]) }}
+                                    </td>
+
+                                {% endfor %}
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- DADOS PARA OS GRÁFICOS -->
+    <!-- ================================================== -->
+
+    <script id="dados-simulacao" type="application/json">
+        {{ tabela.to_json(orient="records") | safe }}
+    </script>
+
+
+    <!-- ================================================== -->
+    <!-- CONSTRUÇÃO DOS GRÁFICOS PLOTLY -->
+    <!-- ================================================== -->
+
+    <script>
+
+        const dadosSimulacao = JSON.parse(
+            document.getElementById("dados-simulacao").textContent
+        );
+
+        const anos = dadosSimulacao.map(item => item.Ano);
+
+
+        // --------------------------------------------
+        // GRÁFICO 1: PRODUÇÃO X CONSUMO
+        // --------------------------------------------
+
+        const graficoProducao = [
+
+            {
+                x: anos,
+                y: dadosSimulacao.map(item => item["Produção"]),
+                name: "Produção",
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#0d6efd",
+                    dash: "dash",
+                    width: 3
+                }
+            },
+
+            {
+                x: anos,
+                y: dadosSimulacao.map(item => item["Consumo"]),
+                name: "Consumo",
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#fd7e14",
+                    width: 3
+                }
+            }
+
+        ];
+
+        Plotly.newPlot(
+            "graficoProducao",
+            graficoProducao,
+            {
+                title: "Produção Fotovoltaica e Consumo Energético",
+                xaxis: { title: "Ano" },
+                yaxis: { title: "Energia (kWh)" },
+                hovermode: "x unified",
+                autosize: true
+            },
+            { responsive: true }
+        );
+
+
+        // --------------------------------------------
+        // GRÁFICO 2: SATISFAÇÃO E UTILIDADE
+        // --------------------------------------------
+
+        const graficoSatisfacao = [
+
+            {
+                x: anos,
+                y: dadosSimulacao.map(item => item["Satisfação"]),
+                name: "Satisfação",
+                type: "scatter",
+                mode: "lines+markers",
+                line: {
+                    color: "#6f42c1",
+                    width: 2
+                }
+            },
+
+            {
+                x: anos,
+                y: dadosSimulacao.map(item => item["Utilidade"]),
+                name: "Utilidade Total",
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#dc3545",
+                    dash: "dash",
+                    width: 3
+                }
+            }
+
+        ];
+
+        Plotly.newPlot(
+            "graficoSatisfacao",
+            graficoSatisfacao,
+            {
+                title: "Satisfação Energética e Utilidade Acumulada",
+                xaxis: { title: "Ano" },
+                yaxis: { title: "Energia (kWh)" },
+                hovermode: "x unified",
+                autosize: true,
+                shapes: [
+                    {
+                        type: "line",
+                        xref: "paper",
+                        x0: 0,
+                        x1: 1,
+                        y0: 0,
+                        y1: 0,
+                        line: {
+                            color: "black",
+                            dash: "dash",
+                            width: 1
+                        }
+                    }
+                ]
+            },
+            { responsive: true }
+        );
+
+
+        // --------------------------------------------
+        // GRÁFICO 3: CRÉDITOS
+        // --------------------------------------------
+
+        const graficoCreditos = [
+
+            {
+                x: anos,
+                y: dadosSimulacao.map(item => item["Créditos Válidos"]),
+                name: "Créditos Válidos",
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#198754",
+                    width: 3
+                }
+            },
+
+            {
+                x: anos,
+                y: dadosSimulacao.map(item => item["Crédito perdido"]),
+                name: "Crédito Perdido",
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#dc3545",
+                    dash: "dash",
+                    width: 3
+                }
+            }
+
+        ];
+
+        Plotly.newPlot(
+            "graficoCreditos",
+            graficoCreditos,
+            {
+                title: "Créditos Válidos e Créditos Perdidos",
+                xaxis: { title: "Ano" },
+                yaxis: { title: "Energia (kWh)" },
+                hovermode: "x unified",
+                autosize: true
+            },
+            { responsive: true }
+        );
+
+    </script>
+
+    {% endif %}
+
+
+    <!-- ================================================== -->
+    <!-- RODAPÉ -->
+    <!-- ================================================== -->
+
+    <footer class="mt-5 pt-4 border-top text-center">
+
+        <p class="text-muted small mb-1">
+            Crédito – Sistema de Análise de Geração e Créditos Energéticos
+        </p>
+
+        <p class="text-muted small">
+            Ferramenta de simulação e análise de sistemas fotovoltaicos.
+        </p>
+
+    </footer>
+
+</div>
+
+
+<!-- BOOTSTRAP JAVASCRIPT -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+
+</html>
