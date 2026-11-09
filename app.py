@@ -156,6 +156,15 @@ def index():
 # ------------------------------------------------------------
 # 5. EXECUÇÃO DA APLICAÇÃO
 # ------------------------------------------------------------
-
 if __name__ == "__main__":
-    app.run(debug=True, port=3011)
+    import os
+
+    # O Render define a porta automaticamente através da variável PORT.
+    # Se estiver rodando local no PyCharm, ele mantém a sua porta 5100.
+    port = int(os.environ.get("PORT", 3011))
+
+    # Em produção (Render), desativamos o debug e permitimos conexões externas (0.0.0.0)
+    if "PORT" in os.environ:
+        app.run(host="0.0.0.0", port=port, debug=False)
+    else:
+        app.run(port=port, debug=True)
