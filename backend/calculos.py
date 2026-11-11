@@ -216,7 +216,7 @@ def realizar_calculos(dados):
 
     DF['Créditos consumido'] = (
         -DF['Satisfação'].
-        clip(upper=0)).cumsum()
+        clip(upper=0).cumsum()
     )
 
     DF['Crédito perdido'] = (
