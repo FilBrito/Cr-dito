@@ -209,8 +209,19 @@ def realizar_calculos(dados):
         sum().clip(lower=0)
     )
 
-    DF["Crédito perdido"] = (
-        DF["Utilidade"] - DF["Créditos Válidos"]
+    creditos_gerados_acum = (
+        DF['Satisfação'].
+        clip(lower=0).cumsum()
+    )
+
+    credito_consumido_acum = (
+        -DF['Satisfação'].
+        clip(upper=0)).cumsum()
+    )
+
+    DF['Crédito perdido'] = (
+        (creditos_gerados_acum - DF['Créditos Válidos'] - credito_consumido_acum)
+        .clip(lower=0).cummax()
     )
 
     # --------------------------------------------------------
