@@ -203,10 +203,10 @@ def realizar_calculos(dados):
     # 4.9. Análise dos créditos de geração
     # --------------------------------------------------------
 
-    DF["Créditos Válidos"] = (
-        DF["Satisfação"]
-        .rolling(window=validade, min_periods=1)
-        .sum()
+    DF['Créditos Válidos'] = (
+        DF['Satisfação']
+        .rolling(window=validade, min_periods=1).
+        sum().clip(lower=0)
     )
 
     DF["Crédito perdido"] = (
